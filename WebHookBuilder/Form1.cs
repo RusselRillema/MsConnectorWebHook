@@ -12,55 +12,33 @@ using System.Windows.Forms;
 using System.Net.Http;
 using System.Net;
 using System.IO;
+using ConnectorWebHook.BLL;
 
 namespace WebHookBuilder
 {
     public partial class Form1 : Form
     {
-        Payload _connectorPayload;
+        MessageCard _connectorPayload;
+        WebHookDelivery _webHookDelivery;
+        readonly string _webHookUrl = "https://outlook.office.com/webhook/8304f5e1-4c5f-48cf-8ce8-915d2d624e77@01f087f8-8805-4349-bd70-b39649b5fbfd/IncomingWebhook/6bd4fe0ade0041179aa43ad73ae3aded/a48ad334-5523-44f5-a605-9d78dc9c5705";
 
         public Form1()
         {
             InitializeComponent();
+            _webHookDelivery = new WebHookDelivery(_webHookUrl);
             _connectorPayload = SetupConnector();
             propertyGrid1.SelectedObject = _connectorPayload;
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            //HttpClient client = new HttpClient();
-            //var payload = JsonConvert.SerializeObject(_connectorPayload);
-            //var content = new FormUrlEncodedContent(payload);
-            //var response = await client.PostAsync("http://www.example.com/recepticle.aspx", content);
-
-            //var responseString = await response.Content.ReadAsStringAsync();
-            //Clipboard.SetText(payload);
-
-
-            string myJson = JsonConvert.SerializeObject(_connectorPayload);
-
-            myJson = myJson.Replace("\"type\":", "\"@type\":");
-            myJson = myJson.Replace("\"context\":", "\"@context\":");         
-
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://outlook.office.com/webhook/8304f5e1-4c5f-48cf-8ce8-915d2d624e77@01f087f8-8805-4349-bd70-b39649b5fbfd/IncomingWebhook/6bd4fe0ade0041179aa43ad73ae3aded/a48ad334-5523-44f5-a605-9d78dc9c5705");
-            httpWebRequest.ContentType = "application/json";
-            httpWebRequest.Method = "POST";
-
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-            {
-                streamWriter.Write(myJson);
-            }
-
-            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-            {
-                var result = streamReader.ReadToEnd();
-            }
+            var result = _webHookDelivery.SendWebHookPayload(_connectorPayload);
+            MessageBox.Show(result);
         }
 
-        public Payload SetupConnector()
+        public MessageCard SetupConnector()
         {
-            Payload payload = new Payload();
+            MessageCard payload = new MessageCard();
 
             payload.type = "MessageCard";
             payload.context = "http://schema.org/extensions";

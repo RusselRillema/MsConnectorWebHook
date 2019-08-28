@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ConnectorWebHook.Models
 {
-    public class Payload
+    public class MessageCard : IWebHookPayload
     {
         public string @type { get; set; }
         public string @context { get; set; }
